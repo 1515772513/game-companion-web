@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
       <div class="logo">
-        <h2 v-if="!isCollapse">游戏陪玩</h2>
+        <h2 v-if="!isCollapse">木子</h2>
         <h2 v-else>陪</h2>
       </div>
       <el-menu
