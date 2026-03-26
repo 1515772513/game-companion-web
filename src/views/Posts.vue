@@ -281,7 +281,7 @@ const handleHide = async (row) => {
       type: 'warning'
     })
 
-    const res = await updatePostVisibility(row.postId, { visible: false })
+    const res = await updatePostVisibility(row.postId, { audit_status: 3 })
 
     if (res.code === 200) {
       ElMessage.success('动态已隐藏')
@@ -304,7 +304,7 @@ const handleShow = async (row) => {
       type: 'warning'
     })
 
-    const res = await updatePostVisibility(row.postId, { visible: true })
+    const res = await updatePostVisibility(row.postId, { audit_status: 1 })
 
     if (res.code === 200) {
       ElMessage.success('动态已恢复')

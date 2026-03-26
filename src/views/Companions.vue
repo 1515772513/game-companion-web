@@ -236,7 +236,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getCompanionApplications, auditCompanion } from '@/api/companions'
+import { getCompanionApplications, auditCompanionApplication } from '@/api/companions'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -331,9 +331,9 @@ const handleApprove = async (row) => {
       }
     )
 
-    const res = await auditCompanion(row.applicantId, {
-      status: 1,
-      reason: ''
+    const res = await auditCompanionApplication(row.applicantId, {
+      audit_status: 1,
+      audit_reason: ''
     })
 
     if (res.code === 200) {
@@ -366,9 +366,9 @@ const handleReject = async () => {
       }
     )
 
-    const res = await auditCompanion(currentApplicant.value.applicantId, {
-      status: 2,
-      reason: rejectReason.value
+    const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
+      audit_status: 2,
+      audit_reason: rejectReason.value
     })
 
     if (res.code === 200) {
