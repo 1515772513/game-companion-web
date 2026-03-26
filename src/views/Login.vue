@@ -67,18 +67,6 @@
         </el-button>
       </el-form>
 
-      <div class="divider">
-        <span class="divider-text">其他登录方式</span>
-      </div>
-
-      <div class="other-login">
-        <div class="login-methods">
-          <div class="login-method" title="微信登录">💬</div>
-          <div class="login-method" title="钉钉登录">📱</div>
-          <div class="login-method" title="扫码登录">📷</div>
-        </div>
-      </div>
-
       <div class="footer">
         <p>© 2026 陪玩平台 · <a href="#">使用协议</a> · <a href="#">隐私政策</a></p>
       </div>
@@ -351,58 +339,6 @@ const handleLogin = async () => {
     &:active {
       transform: translateY(0);
     }
-  }
-}
-
-.divider {
-  text-align: center;
-  position: relative;
-  margin: 24px 0;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    width: 100%;
-    height: 1px;
-    background: #e0e0e0;
-  }
-
-  .divider-text {
-    background: white;
-    padding: 0 16px;
-    position: relative;
-    font-size: 13px;
-    color: #999;
-  }
-}
-
-.other-login {
-  text-align: center;
-}
-
-.login-methods {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-.login-method {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 1px solid #e0e0e0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    border-color: #667eea;
-    background: rgba(102, 126, 234, 0.1);
   }
 }
 
