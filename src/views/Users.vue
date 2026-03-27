@@ -80,7 +80,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="userId" label="用户ID" width="120" />
+        <el-table-column prop="id" label="用户ID" width="120" />
         <el-table-column label="账户余额" width="120">
           <template #default="{ row }">
             <div class="price">¥{{ row.balance || '0.00' }}</div>
@@ -98,7 +98,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="registerTime" label="注册时间" width="180" />
+        <el-table-column prop="createdAt" label="注册时间" width="180" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'" class="status-badge">

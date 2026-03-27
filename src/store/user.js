@@ -29,10 +29,10 @@ export const useUserStore = defineStore(
 
         if (res.code === 200) {
           // 保存token
-          setToken(res.data.access_token)
+          setToken(res.data.accessToken)
 
           // 保存用户信息
-          setUserInfo(res.data.admin_info)
+          setUserInfo(res.data.userInfo)
 
           return res
         }
@@ -49,6 +49,8 @@ export const useUserStore = defineStore(
       try {
         // 调用登出API
         await logoutApi()
+        ElMessage.success('登出成功')
+        window.location.href = '/login'
       } catch (error) {
         console.error('登出API调用失败:', error)
       } finally {

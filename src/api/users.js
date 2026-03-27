@@ -16,7 +16,7 @@ import request from '@/utils/request'
  */
 export const getUserList = (params) => {
   return request({
-    url: '/users',
+    url: '/user/list',
     method: 'get',
     params
   })
