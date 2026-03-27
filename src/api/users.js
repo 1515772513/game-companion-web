@@ -14,11 +14,11 @@ import request from '@/utils/request'
  * @param {String} params.order - 排序方向
  * @returns {Promise}
  */
-export const getUserList = (params) => {
+export const getUserList = (data) => {
   return request({
     url: '/user/list',
-    method: 'get',
-    params
+    method: 'post',
+    data
   })
 }
 
@@ -84,7 +84,7 @@ export const getUserOrders = (userId, params) => {
  */
 export const getUserStats = () => {
   return request({
-    url: '/users/stats',
+    url: '/user/stats',
     method: 'get'
   })
 }

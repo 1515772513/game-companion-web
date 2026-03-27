@@ -33,7 +33,7 @@ service.interceptors.response.use(
 
     // 根据后端返回的数据结构进行调整
     if (res.code && res.code !== 200) {
-      ElMessage.error(res.message || '请求失败')
+      ElMessage.error(res.error || '请求失败')
 
       // 401: 未授权,跳转到登录页
       if (res.code === 401) {
@@ -42,7 +42,7 @@ service.interceptors.response.use(
         window.location.href = '/login'
       }
 
-      return Promise.reject(new Error(res.message || '请求失败'))
+      return Promise.reject(new Error(res.error || '请求失败'))
     }
 
     return res
@@ -80,12 +80,12 @@ service.interceptors.response.use(
           message = '网关超时'
           break
         default:
-          message = error.response.data?.message || '请求失败'
+          message = error.response.data?.error || '请求失败'
       }
     } else if (error.request) {
       message = '网络错误,请检查网络连接'
     } else {
-      message = error.message || '请求失败'
+      message = error.error || '请求失败'
     }
 
     ElMessage.error(message)

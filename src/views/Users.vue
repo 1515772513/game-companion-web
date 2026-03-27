@@ -9,11 +9,11 @@
         @click="handleCardClick(item)"
       >
         <div class="stat-header">
-          <div class="stat-icon" :class="item.type">{{ item.icon }}</div>
+          <div class="stat-icon" :class="'total'">{{ item.icon }}</div>
         </div>
         <div class="stat-value">{{ item.value }}</div>
         <div class="stat-label">{{ item.title }}</div>
-        <div class="stat-change" :class="item.changeClass">
+        <div class="stat-change" :class="'positive'">
           {{ item.change }}
         </div>
       </div>
@@ -51,16 +51,21 @@
         </div>
         <div class="filter-item">
           <div class="filter-label">注册时间</div>
-          <el-select v-model="searchForm.registerTime" placeholder="全部时间" clearable class="filter-select">
-            <el-option label="全部时间" value="" />
-            <el-option label="今天" value="today" />
-            <el-option label="本周" value="week" />
-            <el-option label="本月" value="month" />
-          </el-select>
+          <el-date-picker
+            v-model="searchForm.registerTime"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="选择注册时间"
+            class="filter-select"
+          />
         </div>
-        <el-button type="primary" class="search-btn" @click="handleSearch">
-          🔍 搜索
-        </el-button>
+        
+        <div class="filter-item">
+          <div class="filter-label opacity-0">-- </div>
+          <el-button type="primary" class="search-btn" @click="handleSearch">
+            🔍 搜索
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -188,40 +193,7 @@ const total = ref(0)
 const dialogVisible = ref(false)
 const userInfo = ref({})
 
-const statisticsCards = ref([
-  {
-    title: '总用户数',
-    value: '12,580',
-    icon: '👥',
-    type: 'total',
-    change: '↑ 12.5% 较上周',
-    changeClass: 'positive'
-  },
-  {
-    title: '活跃用户',
-    value: '8,926',
-    icon: '🟢',
-    type: 'active',
-    change: '↑ 8.3% 较上周',
-    changeClass: 'positive'
-  },
-  {
-    title: 'VIP用户',
-    value: '2,158',
-    icon: '👑',
-    type: 'vip',
-    change: '↑ 15.2% 较上周',
-    changeClass: 'positive'
-  },
-  {
-    title: '已禁用',
-    value: '145',
-    icon: '🚫',
-    type: 'banned',
-    change: '↓ 3.2% 较上周',
-    changeClass: 'negative'
-  }
-])
+const statisticsCards = ref([])
 
 const searchForm = reactive({
   keyword: '',
@@ -271,10 +243,7 @@ const loadStats = async () => {
     const res = await getUserStats()
     if (res.code === 200) {
       const data = res.data
-      statisticsCards.value[0].value = data.totalUsers || '12,580'
-      statisticsCards.value[1].value = data.activeUsers || '8,926'
-      statisticsCards.value[2].value = data.vipUsers || '2,158'
-      statisticsCards.value[3].value = data.bannedUsers || '145'
+      statisticsCards.value = data || []
     }
   } catch (error) {
     console.error('加载统计数据失败:', error)
@@ -306,7 +275,7 @@ const handleView = (row) => {
 }
 
 const handleEdit = (row) => {
-  router.push(`/users/edit/${row.userId}`)
+  router.push(`/users/edit/${row.id}`)
 }
 
 const handleToggleStatus = async (row) => {
@@ -394,6 +363,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  padding-bottom: 2px;
 
   &.total {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -461,6 +431,10 @@ onMounted(() => {
   font-size: 13px;
   color: #666;
   margin-bottom: 6px;
+}
+
+.opacity-0 {
+  opacity: 0;
 }
 
 .filter-input,
