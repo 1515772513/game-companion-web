@@ -136,7 +136,7 @@ const handleLogin = async () => {
 
     // 调用登录API
     const res = await userStore.login({
-      username: loginForm.username,
+      phone: loginForm.username,
       password: loginForm.password
     })
 
