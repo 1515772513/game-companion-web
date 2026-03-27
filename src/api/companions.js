@@ -13,11 +13,11 @@ import request from '@/utils/request'
  * @param {String} params.apply_time_end - 申请结束时间
  * @returns {Promise}
  */
-export const getCompanionApplications = (params) => {
+export const getCompanionApplications = (data) => {
   return request({
-    url: '/admin/companions/applications',
-    method: 'get',
-    params
+    url: '/companion/list',
+    method: 'post',
+    data
   })
 }
 
