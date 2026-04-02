@@ -119,7 +119,7 @@ export const banCompanion = (companionId, data) => {
  */
 export const getCompanionStats = () => {
   return request({
-    url: '/admin/companions/stats',
+    url: '/companion/stats',
     method: 'get'
   })
 }

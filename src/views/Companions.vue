@@ -7,14 +7,16 @@
 
     <!-- 标签切换 -->
     <div class="tabs">
+      <!-- 全部选项 -->
+      <div class="tab" :class="{ active: searchForm.status === '' }" @click="handleTabChange('')">全部</div>
       <div
         v-for="tab in tabs"
-        :key="tab.value"
+        :key="tab.dictValue"
         class="tab"
-        :class="{ active: searchForm.status === tab.value }"
-        @click="handleTabChange(tab.value)"
+        :class="{ active: searchForm.status === tab.dictValue }"
+        @click="handleTabChange(tab.dictValue)"
       >
-        {{ tab.label }}
+        {{ tab.dictLabel }}
         <span v-if="tab.count !== undefined" class="tab-badge">{{ tab.count }}</span>
       </div>
     </div>
@@ -46,9 +48,12 @@
           <div class="filter-label">服务类型</div>
           <el-select v-model="searchForm.serviceType" placeholder="全部类型" clearable class="filter-select">
             <el-option label="全部类型" value="" />
-            <el-option label="技术陪玩" value="tech" />
-            <el-option label="娱乐陪玩" value="ent" />
-            <el-option label="语音陪伴" value="voice" />
+            <el-option
+              v-for="item in serviceTypeOptions"
+              :key="item.dictValue"
+              :label="item.dictLabel"
+              :value="item.dictValue"
+            />
           </el-select>
         </div>
         <div class="filter-item">
@@ -60,9 +65,12 @@
             <el-option label="本月" value="month" />
           </el-select>
         </div>
-        <el-button type="primary" class="search-btn" @click="handleSearch">
-          🔍 搜索
-        </el-button>
+        <div class="filter-item">
+          <div class="filter-label opacity-0">-</div>
+          <el-button type="primary" class="search-btn" @click="handleSearch">
+            🔍 搜索
+          </el-button>
+        </div>
       </div>
     </div>
 
@@ -77,7 +85,7 @@
               </div>
               <div class="applicant-details">
                 <div class="applicant-name">{{ row.nickname }}</div>
-                <div class="applicant-id">ID: {{ row.applicantId }}</div>
+                <div class="applicant-id">ID: {{ row.id }}</div>
               </div>
             </div>
           </template>
@@ -105,7 +113,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="申请时间" min-width="180" />
-        <el-table-column label="状态" min-width="100">
+        <el-table-column label="状态" min-width="110">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" class="status-badge">
               {{ row.statusName }}
@@ -242,8 +250,9 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getCompanionApplications, auditCompanionApplication } from '@/api/companions'
+import { getCompanionApplications, auditCompanionApplication, getCompanionStats } from '@/api/companions'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useDictStore } from '@/store/dict'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -251,41 +260,28 @@ const total = ref(0)
 const showDetail = ref(false)
 const currentApplicant = ref({})
 const rejectReason = ref('')
+const dictStore = useDictStore()
 
-const tabs = ref([
-  { label: '待审核', value: '0', count: 23 },
-  { label: '已通过', value: '1', count: 856 },
-  { label: '已拒绝', value: '2', count: 45 }
-])
+const tabs = ref([])         // 审核状态标签（来自字典）
+const serviceTypeOptions = ref([])
 
 const searchForm = reactive({
   keyword: '',
   gameType: '',
   serviceType: '',
   applyTime: '',
-  status: '0',
+  status: '',
   page: 1,
   pageSize: 10
 })
 
+// 状态标签样式
 const getStatusType = (status) => {
-  const typeMap = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger'
-  }
+  const typeMap = { 0: 'warning', 1: 'success', 2: 'danger' }
   return typeMap[status] || 'info'
 }
 
-const getStatusText = (status) => {
-  const textMap = {
-    0: '待审核',
-    1: '已通过',
-    2: '已拒绝'
-  }
-  return textMap[status] || '未知'
-}
-
+// 加载列表数据
 const loadData = async () => {
   try {
     loading.value = true
@@ -299,6 +295,26 @@ const loadData = async () => {
     ElMessage.error('加载数据失败')
   } finally {
     loading.value = false
+  }
+}
+
+// ==============================================
+// 🔥 核心：加载统计数量，并赋值给 tabs.count
+// ==============================================
+const loadStatsCount = async () => {
+  try {
+    const res = await getCompanionStats()
+    if (res.code === 200 && res.data) {
+      // 遍历统计结果 → 匹配字典的 dictValue
+      for (const stat of res.data) {
+        const tab = tabs.value.find(item => item.dictValue === String(stat.status))
+        if (tab) {
+          tab.count = stat.count
+        }
+      }
+    }
+  } catch (err) {
+    console.error('加载统计数量失败', err)
   }
 }
 
@@ -329,68 +345,51 @@ const handleApprove = async (row) => {
   try {
     await ElMessageBox.confirm(
       '确认通过该申请人的认证？\n\n通过后，该用户将正式成为陪玩师，可以接单服务。',
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
     )
-
-    const res = await auditCompanionApplication(row.applicantId, {
-      audit_status: 1,
-      audit_reason: ''
-    })
-
+    const res = await auditCompanionApplication(row.applicantId, { audit_status: 1, audit_reason: '' })
     if (res.code === 200) {
       ElMessage.success('✅ 已通过认证！')
       showDetail.value = false
       loadData()
+      loadStatsCount() // 操作后刷新统计
     }
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('操作失败:', error)
-      ElMessage.error('操作失败')
-    }
+    if (error !== 'cancel') ElMessage.error('操作失败')
   }
 }
 
 const handleReject = async () => {
-  if (!rejectReason.value || rejectReason.value.trim() === '') {
-    ElMessage.warning('请输入拒绝原因')
-    return
+  if (!rejectReason.value.trim()) {
+    return ElMessage.warning('请输入拒绝原因')
   }
-
   try {
-    await ElMessageBox.confirm(
-      `确认拒绝该申请吗？\n\n拒绝原因: ${rejectReason.value}`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-
-    const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
-      audit_status: 2,
-      audit_reason: rejectReason.value
+    await ElMessageBox.confirm(`确认拒绝该申请吗？\n\n拒绝原因: ${rejectReason.value}`, '提示', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
     })
-
+    const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
+      audit_status: 2, audit_reason: rejectReason.value
+    })
     if (res.code === 200) {
       ElMessage.success('❌ 已拒绝申请')
       showDetail.value = false
       loadData()
+      loadStatsCount() // 操作后刷新统计
     }
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('操作失败:', error)
-      ElMessage.error('操作失败')
-    }
+    if (error !== 'cancel') ElMessage.error('操作失败')
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 1. 加载字典
+  serviceTypeOptions.value = await dictStore.getServiceType()
+  tabs.value = await dictStore.getReviewStatus()
+
+  // 2. 加载统计数量（自动匹配赋值）
+  await loadStatsCount()
+
+  // 3. 加载列表
   loadData()
 })
 </script>
@@ -480,6 +479,10 @@ onMounted(() => {
   font-size: 13px;
   color: #666;
   margin-bottom: 6px;
+}
+
+.opacity-0 {
+  opacity: 0;
 }
 
 .filter-input,
