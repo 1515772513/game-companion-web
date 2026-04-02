@@ -47,6 +47,11 @@ export const useUserStore = defineStore(
     // 登出
     const logout = async () => {
       try {
+        // 无论API调用成功与否，都清除本地数据
+        token.value = ''
+        userInfo.value = {}
+        localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
         // 调用登出API
         await logoutApi()
         ElMessage.success('登出成功')

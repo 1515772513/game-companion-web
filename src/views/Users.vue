@@ -72,7 +72,7 @@
     <!-- 数据表格 -->
     <div class="data-card">
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column label="用户信息" width="280">
+        <el-table-column label="用户信息" min-width="280">
           <template #default="{ row }">
             <div class="user-info">
               <el-avatar :size="48" :src="row.avatar" class="user-avatar">
@@ -85,7 +85,7 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="id" label="用户ID" width="120" />
+        <el-table-column prop="id" label="用户ID" min-width="90" />
         <el-table-column label="账户余额" width="120">
           <template #default="{ row }">
             <div class="price">¥{{ row.balance || '0.00' }}</div>
@@ -96,14 +96,14 @@
             <div class="points">⭐ {{ row.points || '0' }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="会员等级" width="120">
+        <el-table-column label="会员等级" min-width="120">
           <template #default="{ row }">
             <el-tag :type="getVipType(row.vipLevel)" class="vip-badge">
               {{ getVipLevelText(row.vipLevel) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="注册时间" width="180" />
+        <el-table-column prop="createdAt" label="注册时间" min-width="180" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'" class="status-badge">
@@ -153,7 +153,7 @@
           </el-avatar>
           <div class="detail-info">
             <div class="detail-name">{{ userInfo.nickname || userInfo.username }}</div>
-            <div class="detail-id">ID: {{ userInfo.userId }}</div>
+            <div class="detail-id">ID: {{ userInfo.id }}</div>
           </div>
         </div>
         <el-descriptions :column="2" border class="detail-descriptions">
@@ -172,7 +172,7 @@
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="注册时间" :span="2">
-            {{ userInfo.registerTime }}
+            {{ userInfo.createdAt }}
           </el-descriptions-item>
         </el-descriptions>
       </div>

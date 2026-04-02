@@ -69,7 +69,7 @@
     <!-- 申请列表 -->
     <div class="data-card">
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column label="申请人信息" width="260">
+        <el-table-column label="申请人信息" min-width="260">
           <template #default="{ row }">
             <div class="applicant-info">
               <div class="applicant-avatar" :style="{ background: row.avatarColor }">
@@ -82,8 +82,8 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="realName" label="真实姓名" width="120" />
-        <el-table-column label="擅长游戏" width="200">
+        <el-table-column prop="realName" label="真实姓名" min-width="120" />
+        <el-table-column label="擅长游戏" min-width="200">
           <template #default="{ row }">
             <div class="game-tags">
               <el-tag
@@ -92,31 +92,32 @@
                 size="small"
                 class="game-tag"
               >
-                {{ game }}
+                {{ game.gameName }} | {{ game.gameLevel }}
               </el-tag>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="serviceType" label="服务类型" width="120" />
-        <el-table-column label="定价" width="120">
+        <el-table-column prop="serviceTypeName" label="服务类型" min-width="120" />
+        <el-table-column label="定价" min-width="120">
           <template #default="{ row }">
-            <div class="price">¥{{ row.price }}</div>
+            <div class="price">¥{{ row.pricePerGame }}/场</div>
+            <div class="price">¥{{ row.pricePerHour }}/小时</div>
           </template>
         </el-table-column>
-        <el-table-column prop="applyTime" label="申请时间" width="180" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="createdAt" label="申请时间" min-width="180" />
+        <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" class="status-badge">
-              {{ getStatusText(row.status) }}
+              {{ row.statusName }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)">
               详情
             </el-button>
-            <el-button
+            <!-- <el-button
               v-if="row.status === 0"
               type="success"
               link
@@ -133,7 +134,7 @@
               @click="handleShowReject(row)"
             >
               拒绝
-            </el-button>
+            </el-button> -->
           </template>
         </el-table-column>
       </el-table>
@@ -160,74 +161,79 @@
         </el-button>
       </div>
 
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">申请人昵称</div>
-          <div class="info-value">{{ currentApplicant.nickname }}</div>
+      <div class="panel-body">
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-label">申请人昵称</div>
+            <div class="info-value">{{ currentApplicant.nickname }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">真实姓名</div>
+            <div class="info-value">{{ currentApplicant.realName }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">身份证号</div>
+            <div class="info-value">{{ currentApplicant.idCard }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">联系电话</div>
+            <div class="info-value">{{ currentApplicant.phone }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">游戏段位</div>
+            <template v-for="game in currentApplicant.games">
+              <div class="info-value">{{ game.gameName }} | {{ game.gameLevel }}</div>
+            </template>
+          </div>
+          <div class="info-item">
+            <div class="info-label">服务类型</div>
+            <div class="info-value">{{ currentApplicant.serviceType }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">定价</div>
+            <div class="price">¥{{ currentApplicant.pricePerGame }}/场</div>
+            <div class="price">¥{{ currentApplicant.pricePerHour }}/小时</div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">申请时间</div>
+            <div class="info-value">{{ currentApplicant.createdAt }}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">真实姓名</div>
-          <div class="info-value">{{ currentApplicant.realName }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">身份证号</div>
-          <div class="info-value">{{ currentApplicant.idCard }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">联系电话</div>
-          <div class="info-value">{{ currentApplicant.phone }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">游戏段位</div>
-          <div class="info-value">{{ currentApplicant.gameRank }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">服务类型</div>
-          <div class="info-value">{{ currentApplicant.serviceType }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">定价</div>
-          <div class="info-value">¥{{ currentApplicant.price }}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">申请时间</div>
-          <div class="info-value">{{ currentApplicant.applyTime }}</div>
-        </div>
-      </div>
 
-      <div class="detail-section">
-        <div class="section-title">个人简介</div>
-        <div class="intro-text">
-          {{ currentApplicant.intro }}
+        <div class="detail-section">
+          <div class="section-title">个人简介</div>
+          <div class="intro-text">
+            {{ currentApplicant.intro }}
+          </div>
         </div>
-      </div>
 
-      <div class="detail-section">
-        <div class="section-title">身份证照片</div>
-        <div class="id-card-preview">
-          <div class="id-card">📷 身份证正面</div>
-          <div class="id-card">📷 身份证反面</div>
+        <div class="detail-section">
+          <div class="section-title">身份证照片</div>
+          <div class="id-card-preview">
+            <div class="id-card">📷 身份证正面</div>
+            <div class="id-card">📷 身份证反面</div>
+          </div>
         </div>
-      </div>
 
-      <div class="verify-actions">
-        <div class="reject-reason">
-          <div class="reject-label">拒绝原因（必填）</div>
-          <el-input
-            v-model="rejectReason"
-            type="textarea"
-            placeholder="请输入拒绝原因..."
-            :rows="3"
-          />
-        </div>
-        <div class="action-buttons">
-          <el-button @click="showDetail = false">取消</el-button>
-          <el-button type="danger" @click="handleReject">
-            拒绝申请
-          </el-button>
-          <el-button type="success" @click="handleApprove(currentApplicant)">
-            ✅ 通过认证
-          </el-button>
+        <div class="verify-actions">
+          <div class="reject-reason">
+            <div class="reject-label">拒绝原因（必填）</div>
+            <el-input
+              v-model="rejectReason"
+              type="textarea"
+              placeholder="请输入拒绝原因..."
+              :rows="3"
+            />
+          </div>
+          <div class="action-buttons">
+            <el-button @click="showDetail = false">取消</el-button>
+            <el-button type="danger" @click="handleReject">
+              拒绝申请
+            </el-button>
+            <el-button type="success" @click="handleApprove(currentApplicant)">
+              ✅ 通过认证
+            </el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -390,11 +396,6 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 .companions-container {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -560,8 +561,7 @@ onMounted(() => {
 }
 
 .price {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
   color: #3b82f6;
 }
 
@@ -580,19 +580,28 @@ onMounted(() => {
 
 .detail-panel {
   background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-top: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: fixed;
+  z-index: 2000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 64px;
   margin-bottom: 24px;
-  padding-bottom: 16px;
+  padding: 24px;
   border-bottom: 1px solid #f0f0f0;
+}
+
+.panel-body {
+  max-height: calc(100vh - 64px - 24px);
+  overflow-y: auto;
+  padding: 0 24px 16px;
 }
 
 .panel-title {
@@ -676,6 +685,7 @@ onMounted(() => {
   padding-top: 24px;
   border-top: 1px solid #f0f0f0;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
 .reject-reason {
@@ -689,8 +699,10 @@ onMounted(() => {
 }
 
 .action-buttons {
+  width: 100%;
   display: flex;
   gap: 12px;
+  padding: 8px 15px;
 }
 
 :deep(.el-table) {
