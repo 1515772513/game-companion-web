@@ -3,14 +3,14 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <h1 class="page-title">订单管理</h1>
-      <div class="header-actions">
+      <!-- <div class="header-actions">
         <el-button class="btn-outline">
           📥 导出订单
         </el-button>
         <el-button type="primary" class="btn-primary">
           📊 数据统计
         </el-button>
-      </div>
+      </div> -->
     </div>
 
     <!-- 订单统计 -->
@@ -39,14 +39,17 @@
 
     <!-- 标签切换 -->
     <div class="tabs">
+      <!-- 全部选项 -->
+      <div class="tab" :class="{ active: searchForm.status === '' }" @click="handleTabChange('')">全部</div>
       <div
         v-for="tab in tabs"
-        :key="tab.value"
+        :key="tab.dictValue"
         class="tab"
-        :class="{ active: searchForm.status === tab.value }"
-        @click="handleTabChange(tab.value)"
+        :class="{ active: searchForm.status === tab.dictValue }"
+        @click="handleTabChange(tab.dictValue)"
       >
-        {{ tab.label }}
+        {{ tab.dictLabel }}
+        <span v-if="tab.count !== undefined" class="tab-badge">{{ tab.count }}</span>
       </div>
     </div>
 
@@ -67,8 +70,7 @@
           <div class="filter-label">订单类型</div>
           <el-select v-model="searchForm.orderType" placeholder="全部类型" clearable class="filter-select">
             <el-option label="全部类型" value="" />
-            <el-option label="陪玩订单" value="peiwang" />
-            <el-option label="代练订单" value="dailian" />
+            <el-option v-for="item in orderTypeOptions" :key="item.dictValue" :label="item.dictLabel" :value="item.dictValue" />
           </el-select>
         </div>
         <div class="filter-item">
@@ -99,7 +101,7 @@
     <!-- 订单表格 -->
     <div class="data-card">
       <el-table :data="tableData" v-loading="loading" style="width: 100%">
-        <el-table-column label="订单信息" width="260">
+        <el-table-column label="订单信息" min-width="260">
           <template #default="{ row }">
             <div class="order-info">
               <div class="order-avatar" :style="{ background: row.avatarColor }">
@@ -107,34 +109,45 @@
               </div>
               <div class="order-details">
                 <div class="order-number">{{ row.orderNo }}</div>
-                <div class="order-game">{{ row.orderType }} · {{ row.gameName }}</div>
+                <div class="order-game">{{ row.orderTypeText }} · {{ row.gameName }}</div>
               </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="userName" label="用户" width="140" />
-        <el-table-column prop="companionName" label="陪玩师" width="140" />
-        <el-table-column prop="gameName" label="游戏" width="120" />
-        <el-table-column label="金额" width="100">
+        <el-table-column prop="username" label="用户" min-width="140" />
+        <el-table-column prop="companionName" label="陪玩师" min-width="180">
           <template #default="{ row }">
-            <div class="price">¥{{ row.amount }}</div>
+            <div>陪玩师：{{ row.companion.realName || '-' }}</div>
+            <div class="nickname-container">
+              <el-tooltip class="nickname-tooltip" :content="row.companion.nickname || '-'" placement="top">
+                游戏昵称：{{ row.companion.nickname || '-' }}
+              </el-tooltip>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="下单时间" width="180" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="gameName" label="游戏" min-width="120" />
+        <el-table-column label="金额" width="170">
+          <template #default="{ row }">
+            <div class="price total-price">订单金额：¥{{ row.totalPrice }}</div>
+            <div class="price discount-amount">优惠金额：¥{{ row.discountAmount }}</div>
+            <div class="price final-price">实付金额：¥{{ row.finalPrice }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createdAt" label="下单时间" min-width="180" />
+        <el-table-column label="状态" min-width="120">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" class="status-badge">
-              {{ getStatusText(row.status) }}
+              {{ row.statusText }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <!-- <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)">
               查看
             </el-button>
             <el-button
-              v-if="row.status === 0"
+              v-if="row.status == 0"
               type="primary"
               link
               size="small"
@@ -143,7 +156,7 @@
               催付
             </el-button>
             <el-button
-              v-if="row.status === 1 || row.status === 2"
+              v-if="row.status == 1 || row.status == 2"
               type="primary"
               link
               size="small"
@@ -152,7 +165,7 @@
               编辑
             </el-button>
             <el-button
-              v-if="row.status === 4"
+              v-if="row.status == 3"
               type="danger"
               link
               size="small"
@@ -161,7 +174,7 @@
               处理
             </el-button>
           </template>
-        </el-table-column>
+        </el-table-column> -->
       </el-table>
 
       <!-- 分页 -->
@@ -187,18 +200,18 @@
           </el-tag>
         </div>
         <el-descriptions :column="2" border class="detail-descriptions">
-          <el-descriptions-item label="订单类型">{{ orderInfo.orderType }}</el-descriptions-item>
-          <el-descriptions-item label="游戏类型">{{ orderInfo.gameName }}</el-descriptions-item>
-          <el-descriptions-item label="用户名">{{ orderInfo.userName }}</el-descriptions-item>
-          <el-descriptions-item label="陪玩师">{{ orderInfo.companionName }}</el-descriptions-item>
-          <el-descriptions-item label="订单金额">¥{{ orderInfo.amount }}</el-descriptions-item>
-          <el-descriptions-item label="服务时长">{{ orderInfo.duration }}小时</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{ orderInfo.orderTypeText }}</el-descriptions-item>
+          <el-descriptions-item label="游戏">{{ orderInfo.gameName }}</el-descriptions-item>
+          <el-descriptions-item label="用户名">{{ orderInfo.username }}</el-descriptions-item>
+          <el-descriptions-item label="陪玩师">{{ orderInfo.companion.realName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="订单金额">¥{{ orderInfo.totalPrice }}</el-descriptions-item>
+          <!-- <el-descriptions-item label="服务时长">{{ orderInfo.duration }}小时</el-descriptions-item> -->
           <el-descriptions-item label="下单时间" :span="2">
-            {{ orderInfo.createTime }}
+            {{ orderInfo.createdAt }}
           </el-descriptions-item>
-          <el-descriptions-item label="完成时间" :span="2">
-            {{ orderInfo.completeTime || '未完成' }}
-          </el-descriptions-item>
+          <!-- <el-descriptions-item label="完成时间" :span="2">
+            {{ orderInfo.completedAt || '未完成' }}
+          </el-descriptions-item> -->
         </el-descriptions>
       </div>
     </el-dialog>
@@ -209,28 +222,19 @@
 import { ref, reactive, onMounted } from 'vue'
 import { getOrderList, getOrderStats } from '@/api/orders'
 import { ElMessage } from 'element-plus'
+import { useDictStore } from '@/store/dict'
+const dictStore = useDictStore()
 
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const dialogVisible = ref(false)
 const orderInfo = ref({})
+const orderTypeOptions = ref([])
 
-const orderStats = ref({
-  total: '3,268',
-  pending: '156',
-  active: '428',
-  completed: '2,456',
-  refund: '228'
-})
+const orderStats = ref({})
 
-const tabs = ref([
-  { label: '全部订单', value: '' },
-  { label: '待付款', value: '0' },
-  { label: '进行中', value: '1' },
-  { label: '已完成', value: '2' },
-  { label: '退款/售后', value: '4' }
-])
+const tabs = ref([])
 
 const searchForm = reactive({
   keyword: '',
@@ -286,11 +290,11 @@ const loadStats = async () => {
     if (res.code === 200) {
       const data = res.data
       orderStats.value = {
-        total: data.total || '3,268',
-        pending: data.pending || '156',
-        active: data.active || '428',
+        total: data.totalOrders || '3,268',
+        pending: data.pendingPayment || '156',
+        active: data.inProgress || '428',
         completed: data.completed || '2,456',
-        refund: data.refund || '228'
+        refund: data.refundAfterSale || '228'
       }
     }
   } catch (error) {
@@ -326,7 +330,9 @@ const handleRefund = (row) => {
   ElMessage.info('退款处理功能开发中...')
 }
 
-onMounted(() => {
+onMounted(async () => {
+  tabs.value = await dictStore.getOrderStatus()
+  orderTypeOptions.value = await dictStore.getServiceType()
   loadData()
   loadStats()
 })
@@ -539,9 +545,19 @@ onMounted(() => {
 }
 
 .price {
-  font-size: 16px;
-  font-weight: 600;
-  color: #3b82f6;
+  font-size: 14px;
+
+  &.total-price {
+    color: #ffa304;
+  }
+  
+  &.discount-amount {
+    color: #999;
+  }
+
+  &.final-price {
+    color: #ff4d4f;
+  }
 }
 
 .status-badge {
@@ -595,6 +611,12 @@ onMounted(() => {
     td {
       background: #fafafa !important;
     }
+  }
+
+  .nickname-container {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

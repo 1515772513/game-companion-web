@@ -46,6 +46,16 @@ export const useDictStore = defineStore('dict', {
       return await this.loadDict('review_status')
     },
 
+    // 订单状态
+    async getOrderStatus() {
+      return await this.loadDict('order_status')
+    },
+
+    // 订单类型
+    async getOrderType() {
+      return await this.loadDict('order_type')
+    },
+
     // 清空缓存
     clearDict() {
       this.dictCache = {}

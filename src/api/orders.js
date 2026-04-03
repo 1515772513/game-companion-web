@@ -17,7 +17,7 @@ import request from '@/utils/request'
  */
 export const getOrderList = (params) => {
   return request({
-    url: '/admin/orders',
+    url: '/orders/list',
     method: 'get',
     params
   })
@@ -118,7 +118,7 @@ export const updateOrderStatus = (orderId, data) => {
  */
 export const getOrderStats = () => {
   return request({
-    url: '/admin/orders/stats',
+    url: '/orders/statistics',
     method: 'get'
   })
 }
