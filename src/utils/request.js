@@ -4,7 +4,7 @@ import { useUserStore } from '@/store/user'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_APP_BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
