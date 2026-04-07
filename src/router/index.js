@@ -48,8 +48,14 @@ const routes = [
       //   path: 'settings',
       //   name: 'Settings',
       //   component: () => import('@/views/Settings.vue'),
-      //   meta: { title: '系统配置', icon: 'Setting', requiresAuth: true }
-      // }
+      //   meta: { title: '客户配置', icon: 'Setting', requiresAuth: true }
+      // },
+      {
+        path: 'system-config',
+        name: 'SystemConfig',
+        component: () => import('@/views/system/Config.vue'),
+        meta: { title: '系统配置', icon: 'Setting', requiresAuth: true }
+      }
     ]
   }
 ]
