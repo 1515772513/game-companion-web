@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --mode development",
+    "dev:prod": "vite --mode production",
     "build": "vite build --mode production",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
