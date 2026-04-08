@@ -33,7 +33,7 @@
               <el-form-item label="平台Logo">
                 <el-upload
                   class="logo-uploader"
-                  action="/api/upload"
+                  :http-request="handleLogoUpload"
                   :show-file-list="false"
                 >
                   <img v-if="basicForm.platformLogo" :src="basicForm.platformLogo" class="logo-preview" />
@@ -200,6 +200,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { getSettings, updateSettings, getOperationLogs } from '@/api/settings'
+import { uploadFile } from '@/api/file'
 import { ElMessage } from 'element-plus'
 
 const activeTab = ref('basic')
@@ -244,13 +245,13 @@ const securityForm = reactive({
   enableOperationLog: true
 })
 
+// 菜单切换
 const handleMenuChange = (value) => {
   activeTab.value = value
-  if (value === 'logs') {
-    loadLogs()
-  }
+  if (value === 'logs') loadLogs()
 }
 
+// 加载配置
 const loadData = async () => {
   try {
     const res = await getSettings()
@@ -266,6 +267,7 @@ const loadData = async () => {
   }
 }
 
+// 加载日志
 const loadLogs = async () => {
   try {
     loadingLogs.value = true
@@ -281,12 +283,30 @@ const loadLogs = async () => {
   }
 }
 
+// ======================
+// 🔥 Logo 自定义上传
+// ======================
+const handleLogoUpload = async (params) => {
+  const file = params.file
+  try {
+    const res = await uploadFile(file, 'banner')
+    if (res.code === 200) {
+      basicForm.platformLogo = res.data.fileUrl
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(res.msg || '上传失败')
+    }
+  } catch (err) {
+    ElMessage.error('上传失败')
+    console.error(err)
+  }
+}
+
+// 保存
 const handleSaveBasic = async () => {
   try {
     const res = await updateSettings({ type: 'basic', data: basicForm })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-    }
+    if (res.code === 200) ElMessage.success('保存成功')
   } catch (error) {
     ElMessage.error('保存失败')
   }
@@ -295,9 +315,7 @@ const handleSaveBasic = async () => {
 const handleSavePayment = async () => {
   try {
     const res = await updateSettings({ type: 'payment', data: paymentForm })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-    }
+    if (res.code === 200) ElMessage.success('保存成功')
   } catch (error) {
     ElMessage.error('保存失败')
   }
@@ -306,9 +324,7 @@ const handleSavePayment = async () => {
 const handleSaveAgreement = async () => {
   try {
     const res = await updateSettings({ type: 'agreement', data: agreementForm })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-    }
+    if (res.code === 200) ElMessage.success('保存成功')
   } catch (error) {
     ElMessage.error('保存失败')
   }
@@ -317,9 +333,7 @@ const handleSaveAgreement = async () => {
 const handleSaveSecurity = async () => {
   try {
     const res = await updateSettings({ type: 'security', data: securityForm })
-    if (res.code === 200) {
-      ElMessage.success('保存成功')
-    }
+    if (res.code === 200) ElMessage.success('保存成功')
   } catch (error) {
     ElMessage.error('保存失败')
   }
@@ -497,12 +511,6 @@ onMounted(() => {
 
   td {
     border-bottom: 1px solid #f5f7fa;
-  }
-
-  &:hover {
-    td {
-      background: #fafafa !important;
-    }
   }
 }
 </style>
