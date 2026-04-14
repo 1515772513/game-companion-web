@@ -91,25 +91,21 @@
           </template>
         </el-table-column>
         <el-table-column prop="realName" label="真实姓名" min-width="120" />
+        
+        <!-- 擅长游戏 → 点击tag弹出详情 -->
         <el-table-column label="擅长游戏" min-width="200">
           <template #default="{ row }">
             <div class="game-tags">
               <el-tag
                 v-for="game in row.games"
-                :key="game"
+                :key="game.gameId"
                 size="small"
                 class="game-tag"
+                @click="openGameDetail(game)"
               >
                 {{ game.gameName }} | {{ game.gameLevel }}
               </el-tag>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="serviceTypeName" label="服务类型" min-width="120" />
-        <el-table-column label="定价" min-width="120">
-          <template #default="{ row }">
-            <div class="price">¥{{ row.pricePerGame }}/场</div>
-            <div class="price">¥{{ row.pricePerHour }}/小时</div>
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="申请时间" min-width="180" />
@@ -245,6 +241,54 @@
         </div>
       </div>
     </div>
+
+    <!-- ======================
+         游戏详情弹框（放在 template 内部最底部）
+         ====================== -->
+    <el-dialog
+      v-model="gameDetailVisible"
+      title="游戏服务详情"
+      width="450px"
+      :close-on-click-modal="false"
+    >
+      <div style="padding: 10px 0;">
+        <div style="margin-bottom: 15px;">
+          <div style="font-size:12px;color:#999;">游戏名称</div>
+          <div style="font-size:15px;font-weight:bold;margin-top:5px;">{{ currentGame.gameName }}</div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <div style="font-size:12px;color:#999;">游戏段位</div>
+          <div style="font-size:15px;margin-top:5px;">{{ currentGame.gameLevel }}</div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <div style="font-size:12px;color:#999;">服务类型</div>
+          <div style="font-size:15px;margin-top:5px;color:#667eea;">
+            {{ currentGame.serviceTypeName }}
+          </div>
+        </div>
+
+        <div style="display: flex;gap:30px;margin-top:20px;">
+          <div>
+            <div style="font-size:12px;color:#999;">单局价格</div>
+            <div style="font-size:16px;font-weight:bold;color:#f56c6c;margin-top:5px;">
+              ¥{{ currentGame.pricePerGame }} /局
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#999;">小时价格</div>
+            <div style="font-size:16px;font-weight:bold;color:#f56c6c;margin-top:5px;">
+              ¥{{ currentGame.pricePerHour }} /小时
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="gameDetailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -262,7 +306,11 @@ const currentApplicant = ref({})
 const rejectReason = ref('')
 const dictStore = useDictStore()
 
-const tabs = ref([])         // 审核状态标签（来自字典）
+// 游戏详情弹框
+const gameDetailVisible = ref(false)
+const currentGame = ref({})
+
+const tabs = ref([])
 const serviceTypeOptions = ref([])
 
 const searchForm = reactive({
@@ -279,6 +327,12 @@ const searchForm = reactive({
 const getStatusType = (status) => {
   const typeMap = { 0: 'warning', 1: 'success', 2: 'danger' }
   return typeMap[status] || 'info'
+}
+
+// 打开游戏详情弹框
+const openGameDetail = (game) => {
+  currentGame.value = { ...game }
+  gameDetailVisible.value = true
 }
 
 // 加载列表数据
@@ -298,14 +352,11 @@ const loadData = async () => {
   }
 }
 
-// ==============================================
-// 🔥 核心：加载统计数量，并赋值给 tabs.count
-// ==============================================
+// 加载统计数量
 const loadStatsCount = async () => {
   try {
     const res = await getCompanionStats()
     if (res.code === 200 && res.data) {
-      // 遍历统计结果 → 匹配字典的 dictValue
       for (const stat of res.data) {
         const tab = tabs.value.find(item => item.dictValue === String(stat.status))
         if (tab) {
@@ -335,12 +386,6 @@ const handleView = (row) => {
   showDetail.value = true
 }
 
-const handleShowReject = (row) => {
-  currentApplicant.value = { ...row }
-  rejectReason.value = ''
-  showDetail.value = true
-}
-
 const handleApprove = async (row) => {
   try {
     await ElMessageBox.confirm(
@@ -352,7 +397,7 @@ const handleApprove = async (row) => {
       ElMessage.success('✅ 已通过认证！')
       showDetail.value = false
       loadData()
-      loadStatsCount() // 操作后刷新统计
+      loadStatsCount()
     }
   } catch (error) {
     if (error !== 'cancel') ElMessage.error('操作失败')
@@ -374,7 +419,7 @@ const handleReject = async () => {
       ElMessage.success('❌ 已拒绝申请')
       showDetail.value = false
       loadData()
-      loadStatsCount() // 操作后刷新统计
+      loadStatsCount()
     }
   } catch (error) {
     if (error !== 'cancel') ElMessage.error('操作失败')
@@ -382,20 +427,14 @@ const handleReject = async () => {
 }
 
 onMounted(async () => {
-  // 1. 加载字典
   serviceTypeOptions.value = await dictStore.getServiceType()
   tabs.value = await dictStore.getReviewStatus()
-
-  // 2. 加载统计数量（自动匹配赋值）
   await loadStatsCount()
-
-  // 3. 加载列表
   loadData()
 })
 </script>
 
 <style scoped lang="scss">
-
 .companions-container {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background: #f5f7fa;
@@ -561,11 +600,11 @@ onMounted(async () => {
   border-radius: 6px;
   font-size: 12px;
   color: #666;
-}
+  cursor: pointer;
 
-.price {
-  font-size: 14px;
-  color: #3b82f6;
+  &:hover {
+    background: #e1e1e1;
+  }
 }
 
 .status-badge {
@@ -719,12 +758,6 @@ onMounted(async () => {
 
   td {
     border-bottom: 1px solid #f5f7fa;
-  }
-
-  &:hover {
-    td {
-      background: #fafafa !important;
-    }
   }
 }
 </style>
