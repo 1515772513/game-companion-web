@@ -9,13 +9,8 @@
     <div class="tabs">
       <!-- 全部选项 -->
       <div class="tab" :class="{ active: searchForm.status === '' }" @click="handleTabChange('')">全部</div>
-      <div
-        v-for="tab in tabs"
-        :key="tab.dictValue"
-        class="tab"
-        :class="{ active: searchForm.status === tab.dictValue }"
-        @click="handleTabChange(tab.dictValue)"
-      >
+      <div v-for="tab in tabs" :key="tab.dictValue" class="tab" :class="{ active: searchForm.status === tab.dictValue }"
+        @click="handleTabChange(tab.dictValue)">
         {{ tab.dictLabel }}
         <span v-if="tab.count !== undefined" class="tab-badge">{{ tab.count }}</span>
       </div>
@@ -26,13 +21,8 @@
       <div class="filter-row">
         <div class="filter-item">
           <div class="filter-label">关键词搜索</div>
-          <el-input
-            v-model="searchForm.keyword"
-            placeholder="搜索申请人姓名、昵称"
-            clearable
-            class="filter-input"
-            @keyup.enter="handleSearch"
-          />
+          <el-input v-model="searchForm.keyword" placeholder="搜索申请人姓名、昵称" clearable class="filter-input"
+            @keyup.enter="handleSearch" />
         </div>
         <div class="filter-item">
           <div class="filter-label">擅长游戏</div>
@@ -48,12 +38,8 @@
           <div class="filter-label">服务类型</div>
           <el-select v-model="searchForm.serviceType" placeholder="全部类型" clearable class="filter-select">
             <el-option label="全部类型" value="" />
-            <el-option
-              v-for="item in serviceTypeOptions"
-              :key="item.dictValue"
-              :label="item.dictLabel"
-              :value="item.dictValue"
-            />
+            <el-option v-for="item in serviceTypeOptions" :key="item.dictValue" :label="item.dictLabel"
+              :value="item.dictValue" />
           </el-select>
         </div>
         <div class="filter-item">
@@ -91,18 +77,13 @@
           </template>
         </el-table-column>
         <el-table-column prop="realName" label="真实姓名" min-width="120" />
-        
+
         <!-- 擅长游戏 → 点击tag弹出详情 -->
         <el-table-column label="擅长游戏" min-width="200">
           <template #default="{ row }">
             <div class="game-tags">
-              <el-tag
-                v-for="game in row.games"
-                :key="game.gameId"
-                size="small"
-                class="game-tag"
-                @click="openGameDetail(game)"
-              >
+              <el-tag v-for="game in row.games" :key="game.gameId" size="small" class="game-tag"
+                @click="openGameDetail(game)">
                 {{ game.gameName }} | {{ game.gameLevel }}
               </el-tag>
             </div>
@@ -144,16 +125,9 @@
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="searchForm.page"
-        v-model:page-size="searchForm.pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="loadData"
-        @current-change="loadData"
-        class="pagination"
-      />
+      <el-pagination v-model:current-page="searchForm.page" v-model:page-size="searchForm.pageSize"
+        :page-sizes="[10, 20, 50, 100]" :total="total" layout="total, sizes, prev, pager, next, jumper"
+        @size-change="loadData" @current-change="loadData" class="pagination" />
     </div>
 
     <!-- 审核详情面板 -->
@@ -183,24 +157,45 @@
             <div class="info-label">联系电话</div>
             <div class="info-value">{{ currentApplicant.phone }}</div>
           </div>
-          <div class="info-item">
-            <div class="info-label">游戏段位</div>
-            <template v-for="game in currentApplicant.games">
-              <div class="info-value">{{ game.gameName }} | {{ game.gameLevel }}</div>
-            </template>
-          </div>
-          <div class="info-item">
-            <div class="info-label">服务类型</div>
-            <div class="info-value">{{ currentApplicant.serviceType }}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">定价</div>
-            <div class="price">¥{{ currentApplicant.pricePerGame }}/场</div>
-            <div class="price">¥{{ currentApplicant.pricePerHour }}/小时</div>
-          </div>
+
           <div class="info-item">
             <div class="info-label">申请时间</div>
             <div class="info-value">{{ currentApplicant.createdAt }}</div>
+          </div>
+        </div>
+        
+        <div class="detail-section">
+          <!-- ====================== 游戏技能切换模块 ====================== -->
+          <div class="info-item">
+            <div class="info-label">游戏技能</div>
+            <div v-if="gameSkills.length > 0" class="skill-container">
+              <!-- 游戏切换标签 -->
+              <div class="skill-tabs">
+                <div v-for="(skill, idx) in gameSkills" :key="skill.gameId" class="skill-tab"
+                  :class="{ active: activeSkillIndex === idx }" @click="switchSkill(idx)">
+                  {{ skill.gameName }}
+                </div>
+              </div>
+
+              <!-- 当前选中的技能详情 -->
+              <div class="skill-info">
+                <div class="skill-row">
+                  <span class="skill-label">段位：</span>
+                  <span class="skill-value">{{ currentSkill.gameRankName }}</span>
+                </div>
+                <div class="skill-row">
+                  <span class="skill-label">服务：</span>
+                  <span class="skill-value">{{ currentSkill.serviceTypeName }}</span>
+                </div>
+                <div class="skill-row">
+                  <span class="skill-label">定价：</span>
+                  <span class="skill-value price">
+                    ¥{{ currentSkill.price }} / {{ currentSkill.priceUnit }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="no-data">暂无游戏技能</div>
           </div>
         </div>
 
@@ -220,10 +215,21 @@
           <div class="section-title">身份证照片</div>
           <div class="id-card-preview">
             <div class="id-card">
-              <el-image :src="currentApplicant.idCardFrontUrl" alt="身份证正面" :preview-src-list="[currentApplicant.idCardFrontUrl]" />
+              <el-image :src="currentApplicant.idCardFrontUrl" alt="身份证正面"
+                :preview-src-list="[currentApplicant.idCardFrontUrl]" />
             </div>
             <div class="id-card">
-              <el-image :src="currentApplicant.idCardBackUrl" alt="身份证反面" :preview-src-list="[currentApplicant.idCardBackUrl]" />
+              <el-image :src="currentApplicant.idCardBackUrl" alt="身份证反面"
+                :preview-src-list="[currentApplicant.idCardBackUrl]" />
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-title">背景墙</div>
+          <div class="id-card-preview">
+            <div class="id-card" v-for="(img, idx) in currentApplicant.backgroundImages" :key="idx">
+              <el-image :src="img" alt="身份证正面" fit="contain" :preview-src-list="[img]" />
             </div>
           </div>
         </div>
@@ -231,12 +237,7 @@
         <div class="verify-actions">
           <div class="reject-reason">
             <div class="reject-label">拒绝原因（必填）</div>
-            <el-input
-              v-model="rejectReason"
-              type="textarea"
-              placeholder="请输入拒绝原因..."
-              :rows="3"
-            />
+            <el-input v-model="rejectReason" type="textarea" placeholder="请输入拒绝原因..." :rows="3" />
           </div>
           <div class="action-buttons">
             <el-button @click="showDetail = false">取消</el-button>
@@ -251,15 +252,8 @@
       </div>
     </div>
 
-    <!-- ======================
-         游戏详情弹框（放在 template 内部最底部）
-         ====================== -->
-    <el-dialog
-      v-model="gameDetailVisible"
-      title="游戏服务详情"
-      width="450px"
-      :close-on-click-modal="false"
-    >
+    <!-- 游戏详情弹框 -->
+    <el-dialog v-model="gameDetailVisible" title="游戏服务详情" width="450px" :close-on-click-modal="false">
       <div style="padding: 10px 0;">
         <div style="margin-bottom: 15px;">
           <div style="font-size:12px;color:#999;">游戏名称</div>
@@ -285,12 +279,12 @@
               ¥{{ currentGame.pricePerGame }} /局
             </div>
           </div>
-          <!-- <div>
+          <div>
             <div style="font-size:12px;color:#999;">小时价格</div>
             <div style="font-size:16px;font-weight:bold;color:#f56c6c;margin-top:5px;">
               ¥{{ currentGame.pricePerHour }} /小时
             </div>
-          </div> -->
+          </div>
         </div>
       </div>
 
@@ -302,495 +296,575 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { getCompanionApplications, auditCompanionApplication, getCompanionStats, getCompanionDetail } from '@/api/companions'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { useDictStore } from '@/store/dict'
+  import { ref, reactive, onMounted, computed } from 'vue'
+  import { getCompanionApplications, auditCompanionApplication, getCompanionStats, getCompanionDetail } from '@/api/companions'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { useDictStore } from '@/store/dict'
 
-const loading = ref(false)
-const tableData = ref([])
-const total = ref(0)
-const showDetail = ref(false)
-const currentApplicant = ref({})
-const rejectReason = ref('')
-const dictStore = useDictStore()
+  const loading = ref(false)
+  const tableData = ref([])
+  const total = ref(0)
+  const showDetail = ref(false)
+  const currentApplicant = ref({})
+  const rejectReason = ref('')
+  const dictStore = useDictStore()
 
-// 游戏详情弹框
-const gameDetailVisible = ref(false)
-const currentGame = ref({})
+  // 游戏详情弹框
+  const gameDetailVisible = ref(false)
+  const currentGame = ref({})
 
-const tabs = ref([])
-const serviceTypeOptions = ref([])
+  // ====================== 游戏技能核心逻辑 ======================
+  const gameSkills = ref([])          // 所有游戏技能列表
+  const activeSkillIndex = ref(0)     // 当前选中的游戏索引
 
-const searchForm = reactive({
-  keyword: '',
-  gameType: '',
-  serviceType: '',
-  applyTime: '',
-  status: '',
-  page: 1,
-  pageSize: 10
-})
+  // 当前展示的技能（计算属性）
+  const currentSkill = computed(() => {
+    return gameSkills.value[activeSkillIndex.value] || {}
+  })
 
-// 状态标签样式
-const getStatusType = (status) => {
-  const typeMap = { 0: 'warning', 1: 'success', 2: 'danger' }
-  return typeMap[status] || 'info'
-}
-
-// 打开游戏详情弹框
-const openGameDetail = (game) => {
-  currentGame.value = { ...game }
-  gameDetailVisible.value = true
-}
-
-// 加载列表数据
-const loadData = async () => {
-  try {
-    loading.value = true
-    const res = await getCompanionApplications(searchForm)
-    if (res.code === 200) {
-      tableData.value = res.data.list || []
-      total.value = res.data.total || 0
-    }
-  } catch (error) {
-    console.error('加载数据失败:', error)
-    ElMessage.error('加载数据失败')
-  } finally {
-    loading.value = false
+  // 切换游戏技能
+  const switchSkill = (index) => {
+    activeSkillIndex.value = index
   }
-}
 
-// 加载统计数量
-const loadStatsCount = async () => {
-  try {
-    const res = await getCompanionStats()
-    if (res.code === 200 && res.data) {
-      for (const stat of res.data) {
-        const tab = tabs.value.find(item => item.dictValue === String(stat.status))
-        if (tab) {
-          tab.count = stat.count
+  // ============================================================
+
+  const tabs = ref([])
+  const serviceTypeOptions = ref([])
+
+  const searchForm = reactive({
+    keyword: '',
+    gameType: '',
+    serviceType: '',
+    applyTime: '',
+    status: '',
+    page: 1,
+    pageSize: 10
+  })
+
+  // 状态标签样式
+  const getStatusType = (status) => {
+    const typeMap = { 0: 'warning', 1: 'success', 2: 'danger' }
+    return typeMap[status] || 'info'
+  }
+
+  // 打开游戏详情弹框
+  const openGameDetail = (game) => {
+    currentGame.value = { ...game }
+    gameDetailVisible.value = true
+  }
+
+  // 加载列表数据
+  const loadData = async () => {
+    try {
+      loading.value = true
+      const res = await getCompanionApplications(searchForm)
+      if (res.code === 200) {
+        tableData.value = res.data.list || []
+        total.value = res.data.total || 0
+      }
+    } catch (error) {
+      console.error('加载数据失败:', error)
+      ElMessage.error('加载数据失败')
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 加载统计数量
+  const loadStatsCount = async () => {
+    try {
+      const res = await getCompanionStats()
+      if (res.code === 200 && res.data) {
+        for (const stat of res.data) {
+          const tab = tabs.value.find(item => item.dictValue === String(stat.status))
+          if (tab) {
+            tab.count = stat.count
+          }
         }
       }
+    } catch (err) {
+      console.error('加载统计数量失败', err)
     }
-  } catch (err) {
-    console.error('加载统计数量失败', err)
   }
-}
 
-const handleTabChange = (value) => {
-  searchForm.status = value
-  searchForm.page = 1
-  loadData()
-}
+  const handleTabChange = (value) => {
+    searchForm.status = value
+    searchForm.page = 1
+    loadData()
+  }
 
-const handleSearch = () => {
-  searchForm.page = 1
-  loadData()
-}
+  const handleSearch = () => {
+    searchForm.page = 1
+    loadData()
+  }
 
-const handleView = (row) => {
-  getDetail(row.id)
-  rejectReason.value = ''
-  showDetail.value = true
-}
+  const handleView = (row) => {
+    getDetail(row.id)
+    rejectReason.value = ''
+    showDetail.value = true
+  }
 
-// 获取详情数据
-const getDetail = async (companionId) => {
-  try {
-    const res = await getCompanionDetail(companionId)
-    if (res.code === 200) {
-      currentApplicant.value = { ...res.data }
+  // 获取详情数据 → 提取 gameSkills
+  const getDetail = async (companionId) => {
+    try {
+      const res = await getCompanionDetail(companionId)
+      if (res.code === 200) {
+        currentApplicant.value = { ...res.data }
+        // 从接口取出游戏技能数组（gameId 作为唯一键）
+        gameSkills.value = res.data.gameSkills || res.data.games || []
+        activeSkillIndex.value = 0 // 默认选中第一个
+      }
+    } catch (error) {
+      console.error('获取详情失败:', error)
+      ElMessage.error('获取详情失败')
     }
-  } catch (error) {
-    console.error('获取详情失败:', error)
-    ElMessage.error('获取详情失败')
   }
-}
 
-const handleApprove = async (row) => {
-  try {
-    await ElMessageBox.confirm(
-      '确认通过该申请人的认证？\n\n通过后，该用户将正式成为陪玩师，可以接单服务。',
-      '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
-    )
-    const res = await auditCompanionApplication(row.applicantId, { audit_status: 1, audit_reason: '' })
-    if (res.code === 200) {
-      ElMessage.success('✅ 已通过认证！')
-      showDetail.value = false
-      loadData()
-      loadStatsCount()
+  const handleApprove = async (row) => {
+    try {
+      await ElMessageBox.confirm(
+        '确认通过该申请人的认证？\n\n通过后，该用户将正式成为陪玩师，可以接单服务。',
+        '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+      )
+      const res = await auditCompanionApplication(row.applicantId, { audit_status: 1, audit_reason: '' })
+      if (res.code === 200) {
+        ElMessage.success('✅ 已通过认证！')
+        showDetail.value = false
+        loadData()
+        loadStatsCount()
+      }
+    } catch (error) {
+      if (error !== 'cancel') ElMessage.error('操作失败')
     }
-  } catch (error) {
-    if (error !== 'cancel') ElMessage.error('操作失败')
   }
-}
 
-const handleReject = async () => {
-  if (!rejectReason.value.trim()) {
-    return ElMessage.warning('请输入拒绝原因')
-  }
-  try {
-    await ElMessageBox.confirm(`确认拒绝该申请吗？\n\n拒绝原因: ${rejectReason.value}`, '提示', {
-      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
-    })
-    const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
-      audit_status: 2, audit_reason: rejectReason.value
-    })
-    if (res.code === 200) {
-      ElMessage.success('❌ 已拒绝申请')
-      showDetail.value = false
-      loadData()
-      loadStatsCount()
+  const handleReject = async () => {
+    if (!rejectReason.value.trim()) {
+      return ElMessage.warning('请输入拒绝原因')
     }
-  } catch (error) {
-    if (error !== 'cancel') ElMessage.error('操作失败')
+    try {
+      await ElMessageBox.confirm(`确认拒绝该申请吗？\n\n拒绝原因: ${rejectReason.value}`, '提示', {
+        confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
+      })
+      const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
+        audit_status: 2,
+        audit_reason: rejectReason.value
+      })
+      if (res.code === 200) {
+        ElMessage.success('❌ 已拒绝申请')
+        showDetail.value = false
+        loadData()
+        loadStatsCount()
+      }
+    } catch (error) {
+      if (error !== 'cancel') ElMessage.error('操作失败')
+    }
   }
-}
 
-onMounted(async () => {
-  serviceTypeOptions.value = await dictStore.getServiceType()
-  tabs.value = await dictStore.getReviewStatus()
-  await loadStatsCount()
-  loadData()
-})
+  onMounted(async () => {
+    serviceTypeOptions.value = await dictStore.getServiceType()
+    tabs.value = await dictStore.getReviewStatus()
+    await loadStatsCount()
+    loadData()
+  })
 </script>
 
 <style scoped lang="scss">
-.companions-container {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: #f5f7fa;
-  padding: 32px;
-  color: #333;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.page-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #333;
-}
-
-.tabs {
-  display: flex;
-  gap: 8px;
-  background: white;
-  padding: 12px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.tab {
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #666;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  &:hover {
+  .companions-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background: #f5f7fa;
+    padding: 32px;
+    color: #333;
   }
 
-  &.active {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .tab {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+      background: #f5f7fa;
+    }
+
+    &.active {
+      background: #667eea;
+      color: white;
+    }
+  }
+
+  .tab-badge {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .filter-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-item {
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .filter-label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+
+  .opacity-0 {
+    opacity: 0;
+  }
+
+  .filter-input,
+  .filter-select {
+    width: 100%;
+  }
+
+  .search-btn {
+    padding: 10px 20px;
     background: #667eea;
+    border: none;
     color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #764ba2;
+    }
   }
-}
 
-.tab-badge {
-  background: rgba(255,255,255,0.3);
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-}
-
-.filter-card {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.filter-row {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.filter-item {
-  flex: 1;
-  min-width: 180px;
-}
-
-.filter-label {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 6px;
-}
-
-.opacity-0 {
-  opacity: 0;
-}
-
-.filter-input,
-.filter-select {
-  width: 100%;
-}
-
-.search-btn {
-  padding: 10px 20px;
-  background: #667eea;
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: #764ba2;
+  .data-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
-}
 
-.data-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.applicant-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.applicant-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-.applicant-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.applicant-name {
-  font-weight: 500;
-  margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.applicant-id {
-  font-size: 12px;
-  color: #999;
-}
-
-.game-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.game-tag {
-  padding: 4px 10px;
-  background: #f0f0f0;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #666;
-  cursor: pointer;
-
-  &:hover {
-    background: #e1e1e1;
+  .applicant-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-}
 
-.status-badge {
-  font-size: 12px;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-weight: 500;
-}
+  .applicant-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
 
-.pagination {
-  margin-top: 24px;
-  display: flex;
-  justify-content: flex-end;
-}
+  .applicant-details {
+    flex: 1;
+    min-width: 0;
+  }
 
-.detail-panel {
-  background: white;
-  position: fixed;
-  z-index: 2000;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
+  .applicant-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 64px;
-  margin-bottom: 24px;
-  padding: 24px;
-  border-bottom: 1px solid #f0f0f0;
-}
+  .applicant-id {
+    font-size: 12px;
+    color: #999;
+  }
 
-.panel-body {
-  max-height: calc(100vh - 64px - 24px);
-  overflow-y: auto;
-  padding: 0 24px 16px;
-}
+  .game-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
 
-.panel-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
+  .game-tag {
+    padding: 4px 10px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
 
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-}
+    &:hover {
+      background: #e1e1e1;
+    }
+  }
 
-.info-item {
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
-}
+  .status-badge {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
 
-.info-label {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 6px;
-}
+  .pagination {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+  }
 
-.info-value {
-  font-size: 15px;
-  font-weight: 500;
-  color: #333;
-}
+  .detail-panel {
+    background: white;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
 
-.detail-section {
-  margin-top: 24px;
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    margin-bottom: 24px;
+    padding: 24px;
+    border-bottom: 1px solid #f0f0f0;
+  }
 
-  .tags {
-    margin: 12px 0;
-    .el-tag {
-      margin-left: 8px;
+  .panel-body {
+    max-height: calc(100vh - 64px - 24px);
+    overflow-y: auto;
+    padding: 0 24px 16px;
+  }
 
-      &:first-child {
-        margin-left: 0;
+  .panel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .info-item {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+  }
+
+  .info-label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 6px;
+  }
+
+  .info-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  /* ====================== 游戏技能样式 ====================== */
+  .skill-container {
+    margin-top: 8px;
+  }
+
+  .skill-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .skill-tab {
+    padding: 4px 10px;
+    background: #eef2f7;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: #667eea;
+      color: #fff;
+    }
+  }
+
+  .skill-info {
+    gap: 6px;
+    font-size: 14px;
+  }
+
+  .skill-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .skill-label {
+    color: #666;
+    width: 50px;
+  }
+
+  .skill-value {
+    color: #333;
+    font-weight: 500;
+  }
+
+  .price {
+    color: #f56c6c !important;
+  }
+
+  .no-data {
+    color: #999;
+    font-size: 14px;
+  }
+
+  /* ========================================================== */
+
+  .detail-section {
+    margin-top: 24px;
+
+    .tags {
+      margin: 12px 0;
+
+      .el-tag {
+        margin-left: 8px;
+
+        &:first-child {
+          margin-left: 0;
+        }
       }
     }
   }
-}
 
-.section-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.intro-text {
-  padding: 16px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.8;
-  color: #666;
-}
-
-.id-card-preview {
-  display: flex;
-  gap: 16px;
-}
-
-.id-card {
-  width: 200px;
-  height: 130px;
-  background: #f0f0f0;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #999;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: #e0e0e0;
-  }
-}
-
-.verify-actions {
-  display: flex;
-  gap: 16px;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
-  align-items: flex-end;
-  flex-wrap: wrap;
-}
-
-.reject-reason {
-  flex: 1;
-}
-
-.reject-label {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.action-buttons {
-  width: 100%;
-  display: flex;
-  gap: 12px;
-  padding: 8px 15px;
-}
-
-:deep(.el-table) {
-  font-size: 14px;
-
-  th {
-    background: #fafafa;
-    color: #666;
+  .section-title {
+    font-size: 15px;
     font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
   }
 
-  td {
-    border-bottom: 1px solid #f5f7fa;
+  .intro-text {
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #666;
   }
-}
+
+  .id-card-preview {
+    display: flex;
+    gap: 16px;
+  }
+
+  .id-card {
+    width: 200px;
+    height: 130px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+
+    &:hover {
+      background: #e0e0e0;
+    }
+  }
+
+  .verify-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .reject-reason {
+    flex: 1;
+  }
+
+  .reject-label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .action-buttons {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    padding: 8px 15px;
+  }
+
+  :deep(.el-table) {
+    font-size: 14px;
+
+    th {
+      background: #fafafa;
+      color: #666;
+      font-weight: 600;
+    }
+
+    td {
+      border-bottom: 1px solid #f5f7fa;
+    }
+  }
 </style>
