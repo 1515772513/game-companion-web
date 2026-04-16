@@ -206,16 +206,25 @@
 
         <div class="detail-section">
           <div class="section-title">个人简介</div>
+          <div class="tags">
+            <el-tag v-for="tag in currentApplicant.tags" :key="tag" class="tag-item">
+              {{ tag }}
+            </el-tag>
+          </div>
           <div class="intro-text">
-            {{ currentApplicant.intro }}
+            {{ currentApplicant.bio }}
           </div>
         </div>
 
         <div class="detail-section">
           <div class="section-title">身份证照片</div>
           <div class="id-card-preview">
-            <div class="id-card">📷 身份证正面</div>
-            <div class="id-card">📷 身份证反面</div>
+            <div class="id-card">
+              <el-image :src="currentApplicant.idCardFrontUrl" alt="身份证正面" :preview-src-list="[currentApplicant.idCardFrontUrl]" />
+            </div>
+            <div class="id-card">
+              <el-image :src="currentApplicant.idCardBackUrl" alt="身份证反面" :preview-src-list="[currentApplicant.idCardBackUrl]" />
+            </div>
           </div>
         </div>
 
@@ -276,12 +285,12 @@
               ¥{{ currentGame.pricePerGame }} /局
             </div>
           </div>
-          <div>
+          <!-- <div>
             <div style="font-size:12px;color:#999;">小时价格</div>
             <div style="font-size:16px;font-weight:bold;color:#f56c6c;margin-top:5px;">
               ¥{{ currentGame.pricePerHour }} /小时
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
 
@@ -294,7 +303,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getCompanionApplications, auditCompanionApplication, getCompanionStats } from '@/api/companions'
+import { getCompanionApplications, auditCompanionApplication, getCompanionStats, getCompanionDetail } from '@/api/companions'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useDictStore } from '@/store/dict'
 
@@ -381,9 +390,22 @@ const handleSearch = () => {
 }
 
 const handleView = (row) => {
-  currentApplicant.value = { ...row }
+  getDetail(row.id)
   rejectReason.value = ''
   showDetail.value = true
+}
+
+// 获取详情数据
+const getDetail = async (companionId) => {
+  try {
+    const res = await getCompanionDetail(companionId)
+    if (res.code === 200) {
+      currentApplicant.value = { ...res.data }
+    }
+  } catch (error) {
+    console.error('获取详情失败:', error)
+    ElMessage.error('获取详情失败')
+  }
 }
 
 const handleApprove = async (row) => {
@@ -679,6 +701,17 @@ onMounted(async () => {
 
 .detail-section {
   margin-top: 24px;
+
+  .tags {
+    margin: 12px 0;
+    .el-tag {
+      margin-left: 8px;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
 }
 
 .section-title {

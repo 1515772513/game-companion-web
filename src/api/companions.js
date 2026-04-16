@@ -78,7 +78,7 @@ export const getCompanionList = (params) => {
  */
 export const getCompanionDetail = (companionId) => {
   return request({
-    url: `/admin/companions/${companionId}`,
+    url: `/companion/detail/${companionId}`,
     method: 'get'
   })
 }
