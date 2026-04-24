@@ -41,9 +41,9 @@ export const getApplicationDetail = (applicationId) => {
  * @param {String} data.audit_reason - 审核原因（拒绝时必填）
  * @returns {Promise}
  */
-export const auditCompanionApplication = (applicationId, data) => {
+export const auditCompanionApplication = (data) => {
   return request({
-    url: `/admin/companions/applications/${applicationId}/audit`,
+    url: `/companion/audit`,
     method: 'post',
     data
   })

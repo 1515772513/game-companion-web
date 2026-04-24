@@ -427,7 +427,7 @@
         '确认通过该申请人的认证？\n\n通过后，该用户将正式成为陪玩师，可以接单服务。',
         '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
       )
-      const res = await auditCompanionApplication(row.applicantId, { audit_status: 1, audit_reason: '' })
+      const res = await auditCompanionApplication({ companionId: row.applicantId, status: 1, rejectReason: '' })
       if (res.code === 200) {
         ElMessage.success('✅ 已通过认证！')
         showDetail.value = false
