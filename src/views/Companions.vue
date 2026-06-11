@@ -229,17 +229,17 @@
           <div class="section-title">背景墙</div>
           <div class="id-card-preview">
             <div class="id-card" v-for="(img, idx) in currentApplicant.backgroundImages" :key="idx">
-              <el-image :src="img" alt="身份证正面" fit="contain" :preview-src-list="[img]" />
+              <el-image :src="img" alt="背景墙" fit="contain" :preview-src-list="[img]" />
             </div>
           </div>
         </div>
 
         <div class="verify-actions">
-          <div class="reject-reason">
-            <div class="reject-label">拒绝原因（必填）</div>
+          <div class="reject-reason" v-if="currentApplicant.status === 0 || currentApplicant.status === 2">
+            <div class="reject-label">{{ currentApplicant.status === 0 ? '拒绝原因（必填）' : '拒绝原因' }}</div>
             <el-input v-model="rejectReason" type="textarea" placeholder="请输入拒绝原因..." :rows="3" />
           </div>
-          <div class="action-buttons">
+          <div class="action-buttons" v-if="currentApplicant.status === 0">
             <el-button @click="showDetail = false">取消</el-button>
             <el-button type="danger" @click="handleReject">
               拒绝申请
@@ -427,7 +427,7 @@
         '确认通过该申请人的认证？\n\n通过后，该用户将正式成为陪玩师，可以接单服务。',
         '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
       )
-      const res = await auditCompanionApplication({ companionId: row.applicantId, status: 1, rejectReason: '' })
+      const res = await auditCompanionApplication({ companionId: row.id, status: 1, rejectReason: '' })
       if (res.code === 200) {
         ElMessage.success('✅ 已通过认证！')
         showDetail.value = false
@@ -447,9 +447,10 @@
       await ElMessageBox.confirm(`确认拒绝该申请吗？\n\n拒绝原因: ${rejectReason.value}`, '提示', {
         confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning'
       })
-      const res = await auditCompanionApplication(currentApplicant.value.applicantId, {
-        audit_status: 2,
-        audit_reason: rejectReason.value
+      const res = await auditCompanionApplication({
+        companionId: currentApplicant.value.id,
+        status: 2,
+        rejectReason: rejectReason.value
       })
       if (res.code === 200) {
         ElMessage.success('❌ 已拒绝申请')

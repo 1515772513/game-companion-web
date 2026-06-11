@@ -3,17 +3,14 @@
     <!-- 侧边栏 -->
     <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
       <div class="logo">
+        <span class="logo-icon">🎮</span>
         <h2 v-if="!isCollapse">木子</h2>
-        <h2 v-else>陪</h2>
       </div>
       <el-menu
         :default-active="activeMenu"
         :collapse="isCollapse"
         :collapse-transition="false"
         router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
       >
         <el-menu-item
           v-for="item in menuList"
@@ -122,22 +119,64 @@ const handleCommand = (command) => {
 }
 
 .sidebar {
-  background-color: #304156;
+  background: #232946;
   transition: width 0.3s;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 
   .logo {
     height: 60px;
-    line-height: 60px;
-    text-align: center;
-    background-color: #2b3a4a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     color: #fff;
-    font-size: 20px;
-    font-weight: bold;
+    flex-shrink: 0;
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      font-size: 18px;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
   }
 
   .el-menu {
+    --el-menu-bg-color: transparent;
+    --el-menu-text-color: #a3aed0;
+    --el-menu-active-color: #fff;
+    --el-menu-hover-bg-color: rgba(255, 255, 255, 0.06);
     border-right: none;
+    flex: 1;
+    padding: 8px;
+  }
+
+  :deep(.el-menu-item) {
+    height: 46px;
+    margin-bottom: 4px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+
+    &:hover {
+      color: #fff;
+    }
+
+    &.is-active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
   }
 }
 
@@ -146,8 +185,9 @@ const handleCommand = (command) => {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border-bottom: 1px solid #e6e6e6;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   padding: 0 20px;
+  z-index: 1;
 
   .header-left {
     display: flex;
@@ -157,6 +197,14 @@ const handleCommand = (command) => {
       font-size: 20px;
       cursor: pointer;
       margin-right: 20px;
+      padding: 6px;
+      border-radius: 6px;
+      transition: all 0.25s ease;
+
+      &:hover {
+        color: #667eea;
+        background: #f0f2fd;
+      }
     }
   }
 
@@ -165,16 +213,25 @@ const handleCommand = (command) => {
       display: flex;
       align-items: center;
       cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 8px;
+      transition: background 0.25s ease;
+
+      &:hover {
+        background: #f5f7fa;
+      }
 
       .username {
         margin-left: 10px;
+        font-size: 14px;
+        color: #333;
       }
     }
   }
 }
 
 .main-content {
-  background-color: #f0f2f5;
+  background-color: #f5f7fa;
   padding: 20px;
   overflow-y: auto;
 }

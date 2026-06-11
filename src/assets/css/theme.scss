@@ -1,0 +1,93 @@
+// =============================================
+// 全局主题：统一品牌色与 Element Plus 组件风格
+// 品牌主色 #667eea（与登录页渐变一致）
+// =============================================
+
+:root {
+  // 品牌色
+  --brand-color: #667eea;
+  --brand-color-dark: #764ba2;
+  --brand-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  // 覆盖 Element Plus 主色（按钮、链接、分页、开关、复选框等全局生效）
+  --el-color-primary: #667eea;
+  --el-color-primary-light-3: #94a5f0;
+  --el-color-primary-light-5: #b3bff5;
+  --el-color-primary-light-7: #d1d8f9;
+  --el-color-primary-light-8: #e0e5fb;
+  --el-color-primary-light-9: #f0f2fd;
+  --el-color-primary-dark-2: #5265bb;
+}
+
+html,
+body {
+  background-color: #f5f7fa;
+}
+
+// ---------- 滚动条 ----------
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c9ccd6;
+  border-radius: 4px;
+
+  &:hover {
+    background: #aab0c0;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+// ---------- 表格 ----------
+.el-table {
+  --el-table-header-bg-color: #f8fafc;
+  --el-table-header-text-color: #475569;
+  --el-table-row-hover-bg-color: #f0f2fd;
+
+  th.el-table__cell {
+    font-weight: 600;
+  }
+}
+
+// ---------- 弹窗 / 抽屉 / 消息 ----------
+.el-dialog {
+  border-radius: 12px;
+
+  .el-dialog__header {
+    font-weight: 600;
+  }
+}
+
+.el-drawer {
+  border-radius: 12px 0 0 12px;
+}
+
+.el-message-box {
+  border-radius: 12px;
+}
+
+// ---------- 卡片 ----------
+.el-card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(31, 45, 61, 0.06);
+}
+
+// ---------- 分页 ----------
+.el-pagination {
+  .el-pager li.is-active {
+    background: var(--brand-gradient);
+    color: #fff;
+    border-radius: 6px;
+  }
+}
+
+// ---------- 通用工具类 ----------
+.opacity-0 {
+  opacity: 0;
+}
