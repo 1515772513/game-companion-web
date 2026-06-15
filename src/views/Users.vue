@@ -44,9 +44,10 @@
           <div class="filter-label">会员等级</div>
           <el-select v-model="searchForm.vipLevel" placeholder="全部等级" clearable class="filter-select">
             <el-option label="全部等级" value="" />
-            <el-option label="普通会员" value="0" />
-            <el-option label="VIP会员" value="1" />
-            <el-option label="SVIP会员" value="2" />
+            <el-option label="普通用户" value="0" />
+            <el-option label="普通会员" value="1" />
+            <el-option label="VIP会员" value="2" />
+            <el-option label="SVIP会员" value="3" />
           </el-select>
         </div>
         <div class="filter-item">
@@ -104,28 +105,26 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="注册时间" min-width="180" />
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="120" align="center">
           <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'" class="status-badge">
-              {{ row.status === 1 ? '正常' : '已禁用' }}
-            </el-tag>
+            <el-switch
+              :model-value="row.status"
+              :active-value="1"
+              :inactive-value="0"
+              active-text="正常"
+              inactive-text="禁用"
+              inline-prompt
+              @change="(val) => handleToggleStatus(row, val)"
+            />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link size="small" @click="handleView(row)">
               查看
             </el-button>
             <el-button type="primary" link size="small" @click="handleEdit(row)">
               编辑
-            </el-button>
-            <el-button
-              :type="row.status === 1 ? 'danger' : 'success'"
-              link
-              size="small"
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
           </template>
         </el-table-column>
@@ -145,7 +144,13 @@
     </div>
 
     <!-- 查看详情对话框 -->
-    <el-dialog v-model="dialogVisible" title="用户详情" width="700px">
+    <el-dialog
+      v-model="dialogVisible"
+      title="用户详情"
+      width="700px"
+      align-center
+      class="app-dialog"
+    >
       <div class="user-detail">
         <div class="detail-header">
           <el-avatar :size="80" :src="userInfo.avatar" class="detail-avatar">
@@ -177,21 +182,84 @@
         </el-descriptions>
       </div>
     </el-dialog>
+
+    <!-- 编辑用户对话框 -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑用户"
+      width="520px"
+      align-center
+      class="app-dialog edit-dialog"
+    >
+      <el-form
+        ref="editFormRef"
+        :model="editForm"
+        :rules="editRules"
+        label-width="90px"
+        label-position="top"
+        class="edit-form"
+      >
+        <el-form-item label="昵称" prop="nickname">
+          <el-input v-model="editForm.nickname" placeholder="请输入昵称" clearable />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="editForm.phone" placeholder="请输入手机号" clearable />
+        </el-form-item>
+        <el-form-item label="会员等级" prop="vipLevel">
+          <el-select v-model="editForm.vipLevel" placeholder="请选择会员等级" style="width: 100%">
+            <el-option label="普通用户" :value="0" />
+            <el-option label="普通会员" :value="1" />
+            <el-option label="VIP会员" :value="2" />
+            <el-option label="SVIP会员" :value="3" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="积分" prop="points">
+          <el-input-number
+            v-model="editForm.points"
+            :min="0"
+            :step="1"
+            controls-position="right"
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="editSubmitting" @click="handleEditSubmit">
+            保存
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getUserList, getUserStats, updateUserStatus } from '@/api/users'
+import { getUserList, getUserStats, updateUserStatus, updateUser } from '@/api/users'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-const router = useRouter()
 const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const dialogVisible = ref(false)
 const userInfo = ref({})
+
+const editDialogVisible = ref(false)
+const editSubmitting = ref(false)
+const editFormRef = ref()
+const editForm = reactive({
+  id: null,
+  nickname: '',
+  phone: '',
+  vipLevel: 0,
+  points: 0
+})
+const editRules = {
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }]
+}
 
 const statisticsCards = ref([])
 
@@ -206,20 +274,22 @@ const searchForm = reactive({
 
 const getVipType = (level) => {
   const typeMap = {
-    0: '',
-    1: 'warning',
-    2: 'danger'
+    0: 'info',
+    1: '',
+    2: 'warning',
+    3: 'danger'
   }
-  return typeMap[level] || ''
+  return typeMap[level] ?? 'danger'
 }
 
 const getVipLevelText = (level) => {
   const textMap = {
-    0: '普通会员',
-    1: 'VIP会员',
-    2: 'SVIP会员'
+    0: '普通用户',
+    1: '普通会员',
+    2: 'VIP会员',
+    3: 'SVIP会员'
   }
-  return textMap[level] || '普通会员'
+  return textMap[level] ?? 'SVIP会员'
 }
 
 const loadData = async () => {
@@ -275,12 +345,47 @@ const handleView = (row) => {
 }
 
 const handleEdit = (row) => {
-  router.push(`/users/edit/${row.id}`)
+  editForm.id = row.id
+  editForm.nickname = row.nickname || ''
+  editForm.phone = row.phone || ''
+  editForm.vipLevel = row.vipLevel ?? 0
+  editForm.points = row.points ?? 0
+  editDialogVisible.value = true
 }
 
-const handleToggleStatus = async (row) => {
+const handleEditSubmit = async () => {
   try {
-    const action = row.status === 1 ? '禁用' : '启用'
+    await editFormRef.value.validate()
+  } catch {
+    return
+  }
+
+  try {
+    editSubmitting.value = true
+    const res = await updateUser(editForm.id, {
+      nickname: editForm.nickname,
+      phone: editForm.phone,
+      vipLevel: editForm.vipLevel,
+      points: editForm.points
+    })
+
+    if (res.code === 200) {
+      ElMessage.success('保存成功')
+      editDialogVisible.value = false
+      loadData()
+      loadStats()
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+    ElMessage.error('保存失败')
+  } finally {
+    editSubmitting.value = false
+  }
+}
+
+const handleToggleStatus = async (row, val) => {
+  const action = val === 1 ? '启用' : '禁用'
+  try {
     await ElMessageBox.confirm(
       `确定要${action}该用户吗？${action === '禁用' ? '禁用后用户将无法登录和使用系统功能。' : ''}`,
       '提示',
@@ -291,12 +396,11 @@ const handleToggleStatus = async (row) => {
       }
     )
 
-    const newStatus = row.status === 1 ? 0 : 1
-    const res = await updateUserStatus(row.userId, { status: newStatus })
+    const res = await updateUserStatus(row.id, { status: val })
 
     if (res.code === 200) {
+      row.status = val
       ElMessage.success(`${action}成功`)
-      loadData()
       loadStats()
     }
   } catch (error) {
@@ -522,12 +626,14 @@ onMounted(() => {
     align-items: center;
     gap: 20px;
     margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
   }
 
   .detail-avatar {
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
   }
 
   .detail-info {
@@ -547,7 +653,7 @@ onMounted(() => {
   }
 
   .detail-descriptions {
-    margin-top: 20px;
+    margin-top: 4px;
   }
 }
 
@@ -568,6 +674,113 @@ onMounted(() => {
     td {
       background: #fafafa !important;
     }
+  }
+}
+</style>
+
+<!-- 弹框外壳样式:el-dialog 会 teleport 到 body,scoped 无法命中其内部结构,
+     故用命名空间在 .app-dialog 下的非 scoped 样式,避免全局污染 -->
+<style lang="scss">
+.app-dialog {
+  --el-dialog-padding-primary: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  .el-dialog__header {
+    margin: 0;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .el-dialog__title {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .el-dialog__headerbtn {
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
+
+    .el-dialog__close {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 18px;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    &:hover .el-dialog__close {
+      color: #fff;
+      transform: rotate(90deg);
+    }
+  }
+
+  .el-dialog__body {
+    padding: 24px;
+    color: #333;
+  }
+
+  .el-dialog__footer {
+    padding: 14px 24px 20px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    .el-button--primary {
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+
+      &:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+/* 编辑弹框表单 */
+.edit-dialog {
+  .edit-form {
+    .el-form-item {
+      margin-bottom: 20px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .el-form-item__label {
+      padding-bottom: 6px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .el-input__wrapper,
+    .el-select__wrapper {
+      border-radius: 8px;
+    }
+  }
+}
+
+/* 详情弹框描述列表 */
+.app-dialog .detail-descriptions {
+  .el-descriptions__label {
+    width: 110px;
+    color: #888;
+    background: #fafbfc;
+    font-weight: 500;
+  }
+
+  .el-descriptions__content {
+    color: #333;
   }
 }
 </style>

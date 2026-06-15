@@ -35,30 +35,33 @@ export const getUserDetail = (userId) => {
 }
 
 /**
- * 更新用户状态（封禁/解封）
+ * 更新用户状态（启用/禁用）
  * @param {Number} userId - 用户ID
  * @param {Object} data - 状态数据
- * @param {Number} data.account_status - 账号状态：1禁用，2封禁，0解封
- * @param {String} data.reason - 封禁原因
+ * @param {Number} data.status - 账号状态：1正常，0禁用
  * @returns {Promise}
  */
 export const updateUserStatus = (userId, data) => {
   return request({
-    url: `/users/${userId}/status`,
+    url: `/user/${userId}/status`,
     method: 'put',
     data
   })
 }
 
 /**
- * 编辑用户信息
+ * 编辑用户信息（管理员）
  * @param {Number} userId - 用户ID
  * @param {Object} data - 用户信息
+ * @param {String} data.nickname - 昵称
+ * @param {String} data.phone - 手机号
+ * @param {Number} data.vipLevel - 会员等级
+ * @param {Number} data.points - 积分
  * @returns {Promise}
  */
 export const updateUser = (userId, data) => {
   return request({
-    url: `/users/${userId}`,
+    url: `/user/${userId}`,
     method: 'put',
     data
   })
